@@ -1,0 +1,45 @@
+replicas: 2
+
+
+adminUser: root
+adminPassword: q1w2e3r4100@
+
+
+service:
+  type: ClusterIP
+
+
+persistence:
+  enabled: true
+  storageClassName: gp3
+  size: 10Gi
+
+resources: {}
+
+# Enable provisioning
+sidecar:
+  dashboards:
+    enabled: true
+
+  datasources:
+    enabled: true
+
+# Loki datasource automatically
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+
+    datasources:
+
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway.loki.svc.cluster.local
+        isDefault: false
+
+
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-kube-prometheus-prometheus.default.svc.cluster.local:9090
+

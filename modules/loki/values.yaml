@@ -1,0 +1,104 @@
+
+deploymentMode: Distributed
+
+loki:
+  auth_enabled: false
+
+  commonConfig:
+    replication_factor: 1
+
+  schemaConfig:
+    configs:
+      - from: "2024-04-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+  storage:
+    type: s3
+
+    bucketNames:
+      chunks: loki
+      ruler: loki
+      admin: loki
+
+    s3:
+      endpoint: minio.default.svc.cluster.local:9000
+      region: us-east-1
+      accessKeyId: root
+      secretAccessKey: "q1w2e3r4100@"
+      s3ForcePathStyle: true
+      insecure: true
+
+# Disable bundled MinIO
+minio:
+  enabled: false
+
+# Disable Memcached caches
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+gateway:
+  enabled: true
+  replicas: 1
+
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+
+distributor:
+  replicas: 1
+
+ingester:
+  replicas: 1
+
+  zoneAwareReplication:
+    enabled: false
+
+  persistence:
+    enabled: true
+    storageClass: gp3
+    size: 10Gi
+
+querier:
+  replicas: 1
+
+queryFrontend:
+  replicas: 1
+
+queryScheduler:
+  replicas: 1
+
+compactor:
+  replicas: 1
+
+  persistence:
+    enabled: true
+    storageClass: gp3
+    size: 10Gi
+
+indexGateway:
+  replicas: 1
+
+# Disable other deployment modes
+singleBinary:
+  replicas: 0
+
+backend:
+  replicas: 0
+
+read:
+  replicas: 0
+
+write:
+  replicas: 0
+
+  

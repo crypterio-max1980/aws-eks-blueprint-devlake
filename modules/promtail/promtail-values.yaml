@@ -1,0 +1,84 @@
+config:
+  clients:
+    - url: http://loki-gateway.loki.svc.cluster.local/loki/api/v1/push
+
+  snippets:
+    pipelineStages:
+      - cri: {}
+
+    scrapeConfigs: |
+      - job_name: kubernetes-pods
+
+        kubernetes_sd_configs:
+          - role: pod
+
+        relabel_configs:
+
+          # Namespace
+          - source_labels:
+              - __meta_kubernetes_namespace
+            target_label: namespace
+
+          # Pod name
+          - source_labels:
+              - __meta_kubernetes_pod_name
+            target_label: pod
+
+          # Container name
+          - source_labels:
+              - __meta_kubernetes_pod_container_name
+            target_label: container
+
+          # Node name
+          - source_labels:
+              - __meta_kubernetes_pod_node_name
+            target_label: node
+
+          # Log path
+          - source_labels:
+              - __meta_kubernetes_pod_uid
+              - __meta_kubernetes_pod_container_name
+            separator: /
+            target_label: __path__
+            replacement: /var/log/pods/*$1/*.log
+
+
+daemonset:
+  enabled: true
+
+
+serviceAccount:
+  create: true
+
+
+rbac:
+  create: true
+
+resources: {}
+
+tolerations:
+  - operator: Exists
+
+
+securityContext:
+  runAsUser: 0
+
+
+volumeMounts:
+  - name: pods
+    mountPath: /var/log/pods
+    readOnly: true
+
+  - name: containers
+    mountPath: /var/lib/docker/containers
+    readOnly: true
+
+
+volumes:
+  - name: pods
+    hostPath:
+      path: /var/log/pods
+
+  - name: containers
+    hostPath:
+      path: /var/lib/docker/containers
