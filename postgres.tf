@@ -4,20 +4,19 @@
 
 resource "aws_security_group" "rds_sg" {
   name        = "postgres-metabase-rds-sg"
-  description = "Allow PostgreSQL access from authorized EKS workloads"
+  description = "Allow PostgreSQL access from EKS and VPC"
   vpc_id      = aws_vpc.main.id
 
+  # Allow PostgreSQL from authorized EKS workloads
   ingress {
     description     = "PostgreSQL from EKS workloads"
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [
-      aws_security_group.eks_rds_client.id
-    ]
+    security_groups = [aws_security_group.eks_rds_client.id]
   }
 
-  # Allow PostgreSQL from the VPC
+  # Allow PostgreSQL from the VPC CIDR
   ingress {
     description = "PostgreSQL from VPC CIDR"
     from_port   = 5432
@@ -26,6 +25,7 @@ resource "aws_security_group" "rds_sg" {
     cidr_blocks = ["10.0.0.0/16"]
   }
 
+  # Allow outbound traffic
   egress {
     description = "Allow outbound traffic"
     from_port   = 0
