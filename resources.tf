@@ -30,8 +30,8 @@ module "grafana" {
   depends_on = [module.prometheus]
 }
 
-module "metadata" {
-  source = "./modules/metadata"
+module "metabase" {
+  source = "./modules/metabase"
   depends_on = [module.grafana]
 }
 
