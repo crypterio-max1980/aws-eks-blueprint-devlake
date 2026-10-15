@@ -1,8 +1,9 @@
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/cbd9b259-c894-4a93-88da-3d37f195fd19" />
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/f0c4dbfa-bf6f-4b22-9a84-e64ee81ca3e1" />
 
 
 
-## AWS | Weaviate Vector Database
+
+## AWS | Metabase
 Weaviate is a cloud-native vector database that stores both objects and vectors, enabling semantic search at scale. It combines vector similarity search with keyword filtering, retrieval-augmented generation (RAG), and reranking in a single query interface. Common use cases include RAG systems, semantic and image search, recommendation engines, chatbots, and content classification
 
 
