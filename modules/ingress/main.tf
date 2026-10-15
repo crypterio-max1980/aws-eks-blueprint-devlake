@@ -21,7 +21,7 @@ resource "kubernetes_ingress_v1" "grafana" {
     }
 
     rule {
-      host = "monitor.appflex.io"
+      host = "monitor.crypterio.co"
       http {
         path {
           path      = "/"
