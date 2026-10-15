@@ -1,10 +1,9 @@
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/f0c4dbfa-bf6f-4b22-9a84-e64ee81ca3e1" />
-
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/475c8740-d79b-4f58-a2ca-179eff96b8ff" />
 
 
 
 ## AWS | Metabase
-Weaviate is a cloud-native vector database that stores both objects and vectors, enabling semantic search at scale. It combines vector similarity search with keyword filtering, retrieval-augmented generation (RAG), and reranking in a single query interface. Common use cases include RAG systems, semantic and image search, recommendation engines, chatbots, and content classification
+Metabase is an open-source Business Intelligence (BI) platform that lets you analyze data, run SQL queries, and build interactive dashboards without needing to develop a custom analytics application.
 
 
 
