@@ -30,12 +30,12 @@ module "grafana" {
   depends_on = [module.prometheus]
 }
 
-module "metabase" {
-  source = "./modules/metabase"
+module "ingress" {
+  source = "./modules/ingress"
   depends_on = [module.grafana]
 }
 
-module "ingress" {
-  source = "./modules/ingress"
-  depends_on = [module.weaviate]
+module "metabase" {
+  source = "./modules/metabase"
+  depends_on = [module.ingress]
 }
