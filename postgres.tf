@@ -116,7 +116,7 @@ resource "aws_db_instance" "postgres" {
   auto_minor_version_upgrade = true
 
   # Security and lifecycle
-  deletion_protection = true
+  deletion_protection = false
   skip_final_snapshot = false
 
   final_snapshot_identifier = "postgres-metabase-final"
