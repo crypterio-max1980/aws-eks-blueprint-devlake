@@ -55,7 +55,7 @@ resource "aws_db_instance" "postgres" {
   engine_version         = "17.6"
   instance_class         = "db.t4g.micro"
   username               = "postgres"
-  password               = "SuperSecret123!"
+  password               = "q1w2e3r4100@!"
   port                   = 5432
   db_subnet_group_name   = aws_db_subnet_group.rds_subnets.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
