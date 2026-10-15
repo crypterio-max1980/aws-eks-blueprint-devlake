@@ -1,30 +1,24 @@
-# ----------------------
-# POSTGRES RDS INSTANCE
-# ----------------------
+# ----------------------------------------
+# RDS PostgreSQL Security Group
+# ----------------------------------------
+
 resource "aws_security_group" "rds_sg" {
-  name        = "rds-sg"
-  description = "Allow Lambda to access Postgres"
+  name        = "postgres-metabase-rds-sg"
+  description = "Allow PostgreSQL access from authorized EKS workloads"
   vpc_id      = aws_vpc.main.id
 
-  # Inbound: allow Lambda SG to connect to Postgres (port 5432)
   ingress {
+    description     = "PostgreSQL from EKS workloads"
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.lambda_sg.id]
+    security_groups = [
+      aws_security_group.eks_rds_client.id
+    ]
   }
 
-  # Allow specific IP
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = ["84.228.99.5/32"]  # replace with your IP
-    description = "Allow my office IP"
-  }
-
-  # Outbound: allow all
   egress {
+    description = "Allow outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -32,40 +26,115 @@ resource "aws_security_group" "rds_sg" {
   }
 
   tags = {
-    Name = "rds-sg"
+    Name        = "postgres-metabase-rds-sg"
+    Environment = "production"
+    ManagedBy   = "Terraform"
   }
 }
 
-# Subnet group for RDS (must be public subnets)
-resource "aws_db_subnet_group" "rds_subnets" {
-  name       = "rds-public-subnets"
-  subnet_ids = [for s in aws_subnet.public : s.id]
+# ----------------------------------------
+# EKS-to-RDS Client Security Group
+# ----------------------------------------
+
+resource "aws_security_group" "eks_rds_client" {
+  name        = "eks-rds-client-sg"
+  description = "Security group for EKS workloads accessing RDS"
+  vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "rds-public-subnets"
+    Name        = "eks-rds-client-sg"
+    Environment = "production"
+    ManagedBy   = "Terraform"
   }
 }
 
+# ----------------------------------------
+# RDS DB Subnet Group
+# Use private subnets in at least two AZs
+# ----------------------------------------
 
-# RDS Postgres instance
+resource "aws_db_subnet_group" "rds_subnets" {
+  name        = "postgres-metabase-private-subnets"
+  description = "Private subnets for PostgreSQL RDS"
+
+  subnet_ids = [
+    for subnet in aws_subnet.private : subnet.id
+  ]
+
+  tags = {
+    Name        = "postgres-metabase-private-subnets"
+    Environment = "production"
+    ManagedBy   = "Terraform"
+  }
+}
+
 resource "aws_db_instance" "postgres" {
-  identifier             = "postgres-metabase"
-  allocated_storage      = 10
-  engine                 = "postgres"
-  engine_version         = "17.6"
-  instance_class         = "db.t4g.micro"
-  username               = "postgres"
-  password               = "q1w2e3r4100@!"
-  port                   = 5432
+  identifier = "postgres-metabase"
+
+  # Engine configuration
+  engine         = "postgres"
+  engine_version = "17.6"
+  instance_class = "db.t4g.micro"
+
+  # Storage
+  allocated_storage     = 20
+  max_allocated_storage = 100
+  storage_type          = "gp3"
+  storage_encrypted     = true
+
+  # Database configuration
+  db_name  = "metabase"
+  username = "postgres"
+  port     = 5432
+
+  # AWS-managed master password
+  manage_master_user_password = true
+
+  # Network configuration
   db_subnet_group_name   = aws_db_subnet_group.rds_subnets.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  multi_az               = false
-  publicly_accessible    = true
-  skip_final_snapshot    = true
-  deletion_protection    = false
+  publicly_accessible    = false
+
+  # Single-AZ deployment
+  multi_az = false
+
+  # Automated backups
+  backup_retention_period = 7
+  backup_window           = "03:00-04:00"
+
+  # Maintenance
+  maintenance_window         = "sun:04:00-sun:05:00"
+  auto_minor_version_upgrade = true
+
+  # Security and lifecycle
+  deletion_protection = true
+  skip_final_snapshot = false
+
+  final_snapshot_identifier = "postgres-metabase-final"
+
+  # CloudWatch log exports
+  enabled_cloudwatch_logs_exports = [
+    "postgresql",
+    "upgrade"
+  ]
 
   tags = {
-    Name = "postgres-db"
+    Name        = "postgres-metabase"
+    Environment = "production"
+    ManagedBy   = "Terraform"
   }
-  depends_on = [aws_nat_gateway.nat]
+
+  # Ensure NAT Gateway is created first
+  depends_on = [
+    aws_nat_gateway.nat
+  ]
+}
+
+# ----------------------------------------
+# Output: Secrets Manager Secret ARN
+# ----------------------------------------
+
+output "postgres_master_secret_arn" {
+  description = "Secrets Manager ARN for the PostgreSQL master password"
+  value       = aws_db_instance.postgres.master_user_secret[0].secret_arn
 }
